@@ -1,0 +1,22 @@
+{
+  "name": "bsdr-picker",
+  "version": "1.0.0",
+  "description": "date range picker plugin on bootstrap",
+  "main": "daterange.js",
+  "scripts": {
+    "test": "test"
+  },
+  "keywords": [
+    "date",
+    "daterange",
+    "datepicker",
+    "bootstrap"
+  ],
+  "author": "yg.song@nextmediagroup.co.kr",
+  "license": "MIT",
+  "dependencies": {
+    "bootstrap": "^4.2.1",
+    "jquery": "^3.3.1",
+    "popper.js": "^1.14.7"
+  }
+}
