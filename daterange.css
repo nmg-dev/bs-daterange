@@ -1,0 +1,82 @@
+.daterange {
+	display: flex;
+	flex-direction: row;
+}
+
+
+.daterange .bs-daterange-wrapper {
+	display: flex;
+	flex-direction: column;
+	width: 230px;
+}
+
+.daterange .bs-daterange-calendar {
+	font-size: 0.75rem;
+	line-height: 2.5em;
+}
+
+.daterange .bs-daterange-selector {
+	justify-content: space-between;
+}
+
+.daterange .bs-daterange-control {
+
+}
+
+.daterange .bs-daterange-control.bs-daterange-prev {
+
+}
+
+.daterange .bs-daterange-control.bs-daterange-next {
+
+}
+
+.daterange .bs-daterange-control .btn.bs-daterange-year {
+
+}
+
+.daterange .bs-daterange-control .btn.bs-daterange-month {
+
+}
+
+.daterange .input-group {
+	border: none;
+}
+
+.daterange .input-group input,.daterange .input-group .input-group-text {
+	background-color: transparent;
+	background-clip: none;
+	border: none;
+	text-align: center;
+	padding: 0px;
+}
+
+.daterange table.bs-daterange-calendar-table {
+
+}
+.daterange table.bs-daterange-calendar-table td {
+	text-align: center;
+	vertical-align: center;
+	align-items: center;
+}
+
+.daterange table.bs-daterange-calendar-table td.focused {
+	border: 2px solid var(--primary);
+}
+
+.daterange table.bs-daterange-calendar-table td.selected {
+	background-color: var(--primary);
+	color: #fff;
+}
+
+.daterange table.bs-daterange-calendar-table td.ranged {
+
+}
+
+.daterange table.bs-daterange-calendar-table td.disabled {
+
+}
+
+.daterange table.bs-daterange-calendar-table td:not(.bs-daterange-the-month) {
+	color: #ccc;
+}
