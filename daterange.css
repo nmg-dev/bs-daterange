@@ -1,13 +1,19 @@
+.daterange,.daterange * {
+	--cell-unit: 20px;
+}
+
 .daterange {
 	display: flex;
 	flex-direction: row;
+	padding: calc(0.5*var(--cell-unit));
 }
+
 
 
 .daterange .bs-daterange-wrapper {
 	display: flex;
 	flex-direction: column;
-	width: 230px;
+	width: 250px;
 }
 
 .daterange .bs-daterange-calendar {
@@ -45,8 +51,9 @@
 
 .daterange .input-group input,.daterange .input-group .input-group-text {
 	background-color: transparent;
-	background-clip: none;
+	width: 100px;
 	border: none;
+	justify-content: center;
 	text-align: center;
 	padding: 0px;
 }
@@ -54,23 +61,41 @@
 .daterange table.bs-daterange-calendar-table {
 
 }
-.daterange table.bs-daterange-calendar-table td {
+.daterange table.bs-daterange-calendar-table td,
+.daterange table.bs-daterange-calendar-table th {
 	text-align: center;
 	vertical-align: center;
 	align-items: center;
+	padding: calc(0.1*var(--cell-unit));
+	width: calc(2*var(--cell-unit));
+	height: calc(2*var(--cell-unit));
+	overflow: overlay;
+	text-transform: capitalize;
+	cursor: pointer;
 }
 
-.daterange table.bs-daterange-calendar-table td.focused {
+.daterange table.bs-daterange-calendar-table .focused {
 	border: 2px solid var(--primary);
 }
 
-.daterange table.bs-daterange-calendar-table td.selected {
+.daterange table.bs-daterange-calendar-table .selected {
 	background-color: var(--primary);
 	color: #fff;
 }
 
-.daterange table.bs-daterange-calendar-table td.ranged {
-
+.daterange table.bs-daterange-calendar-table .in-range {
+	color: var(--light);
+	background-color: var(--dark);
+}
+.daterange table.bs-daterange-calendar-table .period-from {
+	border-radius: var(--cell-unit) 0px 0px var(--cell-unit);
+	font-weight: bolder;
+	color: var(--white);
+}
+.daterange table.bs-daterange-calendar-table .period-till {
+	border-radius: 0px var(--cell-unit) var(--cell-unit) 0px;
+	font-weight: bolder;
+	color: var(--white);
 }
 
 .daterange table.bs-daterange-calendar-table td.disabled {
@@ -78,5 +103,5 @@
 }
 
 .daterange table.bs-daterange-calendar-table td:not(.bs-daterange-the-month) {
-	color: #ccc;
+	opacity: 0.5;
 }

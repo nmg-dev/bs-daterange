@@ -2,8 +2,8 @@ $.fn.daterange = (function(options) {
 	const DEFAULT_OPTIONS = {
 		calendar: '2019-02',
 		ranged: {
-			from: null,
-			till: null,
+			from: '2019-01-29',
+			till: '2019-02-15',
 		},
 		selected: null,
 		moveMonth: true,
@@ -71,7 +71,14 @@ $.fn.daterange = (function(options) {
 	    let dcursor = Object.assign(_dbase, {});
 	    dcursor.date(1);
 	    dcursor.add('day', this._options.weekStart-dcursor.weekday());
+	    dcursor.hour(0);dcursor.minute(0);dcursor.second(0);dcursor.millisecond(2);
 		let the_month = dcursor.format('YYYY-MM');
+
+		let range_from = this._options.ranged && this._options.ranged.from ? moment(this._options.ranged.from) : null;
+		let range_till = this._options.ranged && this._options.ranged.till ? moment(this._options.ranged.till) : null;
+		let inRange = null;
+		range_from.hour(0);range_from.minute(0);range_from.second(0);range_from.millisecond(0);
+		range_till.hour(23);range_till.minute(59);range_till.second(59);range_till.millisecond(999);
 
 	    do {
 	    	let row = tblBody.append('<tr></tr>');
@@ -86,13 +93,27 @@ $.fn.daterange = (function(options) {
 				if(the_month!=this._options.calendar) {
 					wc = dcursor.isBefore(_dbase) ? 'bs-daterange-prev-month' : 'bs-daterange-next-month';
 				}
-				let sc = this._options.selected == the_day ? 'selected' : '';
-				let fc = this._options.focused == the_day ? 'focused': '';
-
-				row.append(`<td class="bs-daterange-cellbody weekday-${wd} ${wc} ${sc} ${fc}" data-date="${dcursor.format('YYYY-MM-DD')}">${dcursor.date()}</td>`);
+				// selected class
+				if(this._options.selected == the_day)
+					wc += ' selected';
+				// focused class
+				if(this._options.focused == the_day) 
+					wc += ' focused';
+				if(range_from && range_from.isBefore(dcursor) && range_till.isAfter(dcursor))
+					wc += ' in-range';
+				
+				row.append(`<td class="bs-daterange-cellbody weekday-${wd} ${wc}" data-date="${dcursor.format('YYYY-MM-DD')}">
+					${dcursor.date()}
+				</td>`);
 	    		dcursor.add('day', 1);
 	    	}).bind(this));
-	    } while(the_month==this._options.calendar)
+	    } while(the_month==this._options.calendar);
+
+	    // setup ranged from/till
+	    this.find(`td[data-date="${range_from.format('YYYY-MM-DD')}"]`).addClass('period-from');
+	    	// .html(`<span class="period-from">${range_from.date()}</span>`);
+	    this.find(`td[data-date="${range_till.format('YYYY-MM-DD')}"]`).addClass('period-till');
+	    	// .html(`<span class="period-till">${range_till.date()}</span>`);
 
 	    this._selector.append(`<div class="bs-daterange-controls">
 	    	<div class="input-group">
