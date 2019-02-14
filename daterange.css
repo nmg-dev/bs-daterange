@@ -13,7 +13,7 @@
 .daterange .bs-daterange-wrapper {
 	display: flex;
 	flex-direction: column;
-	width: 250px;
+	width: calc(15*var(--cell-unit));
 }
 
 .daterange .bs-daterange-calendar {
@@ -22,7 +22,9 @@
 }
 
 .daterange .bs-daterange-selector {
-	justify-content: space-between;
+	justify-content: flex-start;
+	width: calc(9*var(--cell-unit));
+	padding-left: var(--cell-unit);
 }
 
 .daterange .bs-daterange-control {
@@ -104,4 +106,43 @@
 
 .daterange table.bs-daterange-calendar-table td:not(.bs-daterange-the-month) {
 	opacity: 0.5;
+}
+
+.daterange .bs-daterange-selector .bs-daterange-controls input {
+	font-size: 0.75rem;
+	padding: 0.5rem;
+}
+
+.daterange .bs-daterange-selector .bs-daterange-controls input.focused {
+	background-color: var(--light);
+	border-color: var(--primary);
+}
+
+.daterange .bs-daterange-selector .bs-daterange-presets {
+}
+.daterange .bs-daterange-selector .bs-daterange-presets .list-group-item {
+	padding: .5rem;
+}
+.daterange .bs-daterange-selector .bs-daterange-presets h5 {
+	color: var(--dark);
+	font-size: 1.0rem;
+	margin: 0;
+}
+
+.daterange .bs-daterange-selector .bs-daterange-presets small {
+	color: var(--secondary);
+	font-size: 0.5rem;
+	margin: 0;
+}
+
+
+.daterange *::-webkit-scrollbar {
+	width: 2px;
+}
+.daterange *::-webkit-scrollbar-track {
+	/*color: var(--primary);*/
+	background-color: var(--light);
+}
+.daterange *::-webkit-scrollbar-thumb {
+	background-color: var(--dark);
 }
