@@ -3,9 +3,8 @@
 }
 
 .daterange {
-	display: flex;
-	flex-direction: row;
 	padding: calc(0.5*var(--cell-unit));
+	max-width: calc(18*var(--cell-unit))
 }
 
 
@@ -13,18 +12,18 @@
 .daterange .bs-daterange-wrapper {
 	display: flex;
 	flex-direction: column;
-	width: calc(15*var(--cell-unit));
 }
 
 .daterange .bs-daterange-calendar {
 	font-size: 0.75rem;
 	line-height: 2.5em;
+	width: 100%;
 }
 
 .daterange .bs-daterange-selector {
 	justify-content: flex-start;
-	width: calc(9*var(--cell-unit));
-	padding-left: var(--cell-unit);
+	margin-bottom: var(--cell-unit);
+	/*padding-left: var(--cell-unit);*/
 }
 
 .daterange .bs-daterange-control {
@@ -53,7 +52,6 @@
 
 .daterange .input-group input,.daterange .input-group .input-group-text {
 	background-color: transparent;
-	width: 100px;
 	border: none;
 	justify-content: center;
 	text-align: center;
@@ -108,14 +106,18 @@
 	opacity: 0.5;
 }
 
-.daterange .bs-daterange-selector .bs-daterange-controls input {
+.daterange .bs-daterange-selector input.bs-daterange-period {
+	font-weight: inherit;
 	font-size: 0.75rem;
 	padding: 0.5rem;
+	border-color: var(--secondary);
 }
 
-.daterange .bs-daterange-selector .bs-daterange-controls input.focused {
-	background-color: var(--light);
-	border-color: var(--primary);
+.daterange .bs-daterange-selector input.bs-daterange-period:focus,
+.daterange .bs-daterange-selector input.bs-daterange-period.focused {
+	font-weight: 700;
+	color: var(--primary);
+	background-color: var(--white);
 }
 
 .daterange .bs-daterange-selector .bs-daterange-presets {

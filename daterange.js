@@ -18,6 +18,11 @@ $.fn.daterange = (function(options) {
 	};
 	const _TODAY = moment().format(DATE_FORMAT);
 
+	const EVENTS = {
+		ON_REDRAW: 'bs.daterange.redraw.on',
+		ON_SELECT: 'bs.daterange.selected.on',
+	}
+
 	const DEFAULT_OPTIONS = {
 		calendar: '2019-02',
 		ranged: {
@@ -45,69 +50,102 @@ $.fn.daterange = (function(options) {
 	}; 
 	
 	this.__preset_ranges = PRESET_RANGES;
-	// console.log(this, options);
 
 	this._options = Object.assign(DEFAULT_OPTIONS, this[0].dataset, options);
-	// console.log(this._options);
-	
 
-	let _onClickControl = function(ev) {
-		let ctrl = ev.target.tagName != 'I' ? ev.target : ev.target.parentElement;
-		console.log(ev, ctrl);
-		// on click title control
-    	if(ctrl.classList.contains('bs-daterange-control')) {
-    		let unit = ctrl.classList.contains('bs-daterange-year') ? 'year' : 'month';
+	this._onClickControlHandlers = [
+		{cls: 'bs-daterange-control', fn: function(ctrl) {
+			let unit = ctrl.classList.contains('bs-daterange-year') ? 'year' : 'month';
     		let direction = ctrl.classList.contains('bs-daterange-prev') ? -1 : 1;
 
     		this._options.calendar = moment(this._options.calendar)
     			.add(unit, direction)
     			.format(MONTH_FORMAT);
-    	}
-    	// on click calendar
-    	if(ctrl.classList.contains('bs-daterange-cellbody')) {
-    		if(this._options.focused) {
+		}},
+		{cls: 'bs-daterange-cellbody', fn: function(ctrl) {
+			if(this._options.focused) {
     			this._options.ranged[this._options.focused] = ctrl.dataset.date;
     			this._options.focused = null;
     		}
     		this._options.selected = ctrl.dataset.date;
-    	}
-    	// on click input
-    	if(ctrl.classList.contains('bs-daterange-period')) {
-    		this._options.selected = null;
+		}},
+		{cls: 'bs-daterange-period', skipRedraw: true, fn: function(ctrl) {
+			this._options.selected = null;
     		this._options.focused = ctrl.name;
-    	}
-    	// on click preset
-    	if(ctrl.hasAttribute('preset-idx')) {
-    		if(!this._options.ranged.till)
+    		if(ctrl.value) {
+    			this._options.calendar = moment(ctrl.value).format(MONTH_FORMAT);
+    			this._drawControls();
+    		}
+		}},
+		{attr: 'preset-idx', fn: function(ctrl) {
+			if(!this._options.ranged.till)
     			this._options.ranged.till = moment().format(DATE_FORMAT);
     		let pidx = parseInt(ctrl.getAttribute('preset-idx'));
     		this._options.ranged.from = this._options.presets[pidx].range(this._options.ranged.till);
     		this._options.selected = this._options.ranged.from;
     		this._options.focused = null;
     		this._options.presets[pidx].selected = true;
-    	} 
+		}},
+		{cls: 'dropdown-toggle', skipRedraw: true, fn: function(ctrl) {
+			let menu = $(ctrl.parentElement).find('.dropdown-menu').toggleClass('show');
+		}},
+		{cls: 'bs-daterange-selector-submit', fn: function(ctrl) {
+			let period = {};
+			this._selector.find('input.bs-daterange-period').each(function(idx, input) {
+				period[input.getAttribute('name')] = input.value;
+			});
+			
+			this.value = period;
+			this.data(period);
+			this.attr(period);
 
-    	this._drawControls();
+			if(this.hasClass('dropdown-menu') && this.hasClass('show')) {
+				this.removeClass('show');
+			}
+
+			if(this._options.onSelected) {
+				this._options.onSelected(this);
+			}
+			this.trigger(EVENTS.ON_SELECT, [period, this]);
+		}}
+	];
+	
+
+	let _onClickControl = function(ev) {
+		let ctrl = ev.target.tagName != 'I' ? ev.target : ev.target.parentElement;
+		let doRedraw = false;
+		// on click title control
+		this._onClickControlHandlers.forEach((function(handle) {
+			if((handle.cls && ctrl.classList.contains(handle.cls))
+			|| (handle.attr && ctrl.hasAttribute(handle.attr))) {
+				let handlerFn = handle.fn.bind(this);
+				handlerFn(ctrl);
+				if(!handle.skipRedraw)
+					doRedraw = true;
+			} 
+		}).bind(this));
+    	
+    	if(doRedraw)
+    		this._drawControls();
     	ev.preventDefault();
     	ev.stopPropagation();
 	}
 
-	this._drawControls = function(initializing) {
-		this.html(`<div class="bs-daterange-wrapper bs-daterange-calendar"></div><div class="bs-daterange-wrapper bs-daterange-selector"></div>`);
+	this._drawControlsCalendar = function() {
 		this._calendar = this.find('.bs-daterange-calendar');
-		this._selector = this.find('.bs-daterange-selector');
 		this._calendar.append(`<div class="input-group">
 			<div class="input-group-prepend">
 				<button class="btn bs-daterange-control bs-daterange-prev bs-daterange-year"><i class="fas fa-angle-double-left"></i></button>
 				<button class="btn bs-daterange-control bs-daterange-prev bs-daterange-month"><i class="fas fa-angle-left"></i></button>
 			</div>
-			<span class="input-group-text bs-daterange-calendar-month">${moment(this._options.calendar).format(this._options.titleFormat)}</span>
+			<input class="form-control bs-daterange-calendar-month" type="text" value="${moment(this._options.calendar).format(this._options.titleFormat)}" disabled>
 			<div class="input-group-append">
 				<button class="btn bs-daterange-control bs-daterange-next bs-daterange-month"><i class="fas fa-angle-right"></i></button>
 				<button class="btn bs-daterange-control bs-daterange-next bs-daterange-year"><i class="fas fa-angle-double-right"></i></button>
 			</div>
 		</div>
 		<table class="bs-daterange-calendar-table"></table>`);
+
 		let tbl = $(this._calendar).find('table.bs-daterange-calendar-table');
 		tbl.append(`<thead><tr></tr></thead><tbody></tbody>`);
 		let thead = tbl.find('thead>tr');
@@ -169,27 +207,49 @@ $.fn.daterange = (function(options) {
 		    	// .html(`<span class="period-till">${range_till.date()}</span>`);
 	    }
 
-	    let presets = this._options.presets.map(
-	    	(ps, idx)=>`<a href="#" class="list-group-item list-group-item-action flex-column align-items-start bs-daterange-preset-item ${ps.selected?'active':''}"  preset-idx=${idx}>
-    			<div class="d-flex w-100 justify-content-between" preset-idx=${idx}>
-	      			<h5 preset-idx=${idx}>${ps.title}</h5>
-	      			<small preset-idx=${idx}>${ps.desc}</small>
-    			</div>
-    		</a>`) || [];
-	   	this._selector.append(`<div class="list-group bs-daterange-presets">${presets.join(' ')}</div>`);
-	    this._selector.prepend(`<div class="bs-daterange-controls">
-	    	<div class="form-group">
-	    		<input class="form-control bs-daterange-period bs-daterange-from" name="from" type="date" value="${this._options.ranged.from}" readonly>
-	    		<input class="form-control bs-daterange-period bs-daterange-till" name="till" type="date" value="${this._options.ranged.till}" readonly>
-	    	</div>
-	    </div>`);
+	    this.trigger(EVENTS.ON_REDRAW, [this]);
+	}
 
+	this._drawControlsSelector = function() {
+		this._selector = this.find('.bs-daterange-selector');
+
+		this._selector.html(`<div class="input-group bs-daterange-selector-group b-1">
+			<div class="input-group-prepend">
+				<span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+			</div>
+			<input class="form-control bs-daterange-period bs-daterange-from" placeholder="${DATE_FORMAT}" name="from" value="${this._options.ranged.from || ''}" readonly>
+			<span class="input-group-text">-</span>
+	    	<input class="form-control bs-daterange-period bs-daterange-till" placeholder="${DATE_FORMAT}" name="till" value="${this._options.ranged.till || ''}" readonly>
+	    	<div class="input-group-append">
+	    		<button class="btn btn-primary bs-daterange-selector-submit"><i class="fas fa-check"></i></button>
+	    	</div>
+		</div>`);
+		
+	    let presets = this._options.presets.map(
+	    	(ps, idx)=>`<a href="#" class="dropdown-item bs-daterange-preset-item"  preset-idx=${idx}>
+      			${ps.title} <small preset-idx=${idx}>${ps.desc}</small>
+    		</a>`) || [];
+
+	    if(0<presets.length) {
+	    	let _grp = this._selector.find('div.input-group.bs-daterange-selector-group .input-group-prepend');
+	    	_grp.html(`
+	    		<button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+	    		<div class="dropdown-menu">${presets.join('\n')}</div>
+	    	</div>`);
+	    }
 	    if(this._options.focused) {
 	    	this._selector.find(`input[name="${this._options.focused}"]`).addClass('focused');
-	    }
+	    }	    
+	}
 
+	this._drawControls = function(initializing) {
+		this.html(`<div class="bs-daterange-wrapper bs-daterange-selector"></div>
+			<div class="bs-daterange-wrapper bs-daterange-calendar"></div>`);
 
-	    if(initializing) {
+		this._drawControlsCalendar();
+		this._drawControlsSelector();
+
+		if(initializing) {
 		    this.click(_onClickControl.bind(this));    	
 	    }
 	}
@@ -199,5 +259,5 @@ $.fn.daterange = (function(options) {
 });
 
 $('.daterange').ready(function(){
-	$('.daterange').each(function(idx, el) { console.log(el); $(el).daterange(); });
+	$('.daterange').each(function(idx, el) { $(el).daterange(); });
 });
