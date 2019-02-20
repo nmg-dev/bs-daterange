@@ -83,7 +83,9 @@
 	color: #fff;
 }
 
-.daterange table.bs-daterange-calendar-table .in-range {
+.daterange table.bs-daterange-calendar-table .in-range,
+.daterange table.bs-daterange-calendar-table .period-from,
+.daterange table.bs-daterange-calendar-table .period-till {
 	color: var(--light);
 	background-color: var(--dark);
 }
@@ -99,7 +101,8 @@
 }
 
 .daterange table.bs-daterange-calendar-table td.disabled {
-
+	color: var(--gray-dark);
+	background-color: var(--gray);
 }
 
 .daterange table.bs-daterange-calendar-table td:not(.bs-daterange-the-month) {

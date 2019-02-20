@@ -17,13 +17,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.2.1/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
 
+    <!-- Vue.js for preview -->
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+
     <!-- daterange components -->
     <link rel="stylesheet" href="daterange.css">
     <script src="daterange.js"></script>
   </head>
   <body>
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-  <a class="navbar-brand" href="#">Navbar</a>
+  <a class="navbar-brand" href="#">Bootstrap daterange</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -31,27 +34,12 @@
   <div class="collapse navbar-collapse" id="navbarsExampleDefault">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active">
-        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+        <a class="nav-link" data-toggle="tab" role="tab" aria-selected="true" href="#quickstart">Quick Preview</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">Link</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link disabled" href="#">Disabled</a>
-      </li>
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
-        <div class="dropdown-menu" aria-labelledby="dropdown01">
-          <a class="dropdown-item" href="#">Action</a>
-          <a class="dropdown-item" href="#">Another action</a>
-          <a class="dropdown-item" href="#">Something else here</a>
-        </div>
+        <a class="nav-link" data-toggle="tab" role="tab" aria-selected="false" href="#reference">Reference</a>
       </li>
     </ul>
-    <form class="form-inline my-2 my-lg-0">
-      <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-      <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>
-    </form>
   </div>
 </nav>
 
@@ -61,31 +49,257 @@
   </div>
   <div class="row">
     <div class="col-12">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">DateRange Picker range</h5>
-          <div class="card-text">
-            <!-- range default -->
-            <div class="daterange"></div>
+      <div class="tab-content">
+        <div class="card tab-pane show active" role="tabpanel" id="quickstart">
+          <div class="card-body">
+            <h5 class="card-title">Quick Preview</h5>
+            <div class="card-text">
+              <!-- include guide -->
+              <h7>Include</h7>
+              <div class="alert alert-info">
+                  &lt;!-- bootstrap daterange --&gt; <br />
+                  &lt;script type="text/javascript" src="https://nmg-dev.github.io/bs-daterange/daterange.js"&gt;&lt;/script&gt; <br />
+                  &lt;link rel="stylesheet" href="https://nmg-dev.github.io/bs-daterange/daterange.css"&gt;
+              </div>
+
+              <h7>Requirements</h7>
+              <ul class="alert alert-light">
+                <li><a href="https://getbootstrap.com" target="_blank"> <strong>Bootstrap</strong> <small>v4.2.1</small> 
+                  <br />
+                  <ul>
+                    <li><a href="https://jquery.com" target="_blank"> <strong>jQuery - slim</strong> <small>v3.3.1</small> </a></li>
+                    <li><a href="https://popper.js.org/" target="_blank"> <strong>Popper.js - umd</strong> <small>v1.14.7</small> </a></li>
+                  </ul>
+                </a></li>
+                <li><a href="https://momentjs.com" target="_blank"> <strong>Moment.js</strong> <small>v2.24.0</small> </a></li>
+                <li><a href="https://fontawesome.com" target="_blank"> <strong>FontAwesome</strong> <small>v5.7.2</small></a></li>
+              </ul>
+
+              <h7>Install</h7>
+
+              <div class="alert alert-info">
+                 &lt;div class="daterange"&gt; &lt;/div&gt;
+              </div>
+
+              <!-- range default -->
+              <h7>Preview</h7>
+              <div class="d-flex flex-columns justify-content-between">
+                <div class="daterange" id="bs-daterange-preview"></div>
+                <table id="bs-daterange-options">
+                  <tbody>
+                    <tr>
+                      <th>onSelect</th>
+                      <td>
+                        <div class="alert" style="white-space: pre-line">(p,jq_dr) => {
+                            window.alert(`${p.from} - ${p.till}`);
+                            console.log(jq_dr);
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>calendar</th>
+                      <td><input class="form-control" type="month" name="calendar" v-model="calendar"></td>
+                    </tr>
+                    <tr>
+                      <th>dateFrom</th>
+                      <td><input class="form-control" type="date" name="dateFrom" v-model="dateFrom"></td>
+                    </tr>
+                    <tr>
+                      <th>dateTill</th>
+                      <td><input class="form-control" type="date" name="dateTill" v-model="dateTill"></td>
+                    </tr>
+                    <tr>
+                      <th>focused</th>
+                      <td>
+                        <select class="form-control" name="focused" v-model="focused">
+                          <option value="" selected>Unset</option>
+                          <option value="from">From</option>
+                          <option value="till">Till</option>
+                        </select>
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>selected</th>
+                      <td><input class="form-control" type="date" name="selected" v-model="selected"></td>
+                    </tr>
+                    <tr>
+                      <th>moveMonth</th>
+                      <td><input type="checkbox" name="moveMonth" v-model="moveMonth"></td>
+                    </tr>
+                    <tr>
+                      <th>moveYear</th>
+                      <td><input type="checkbox" name="moveYear" v-model="moveYear"></td>
+                    </tr>
+                    <tr>
+                      <th>titleFormat</th>
+                      <td><input class="form-control" type="text" name="titleFormat" v-model="titleFormat"></td>
+                    </tr>
+                    <tr>
+                      <th>weekStart</th>
+                      <td>
+                        <select class="form-control" name="weekStart">
+                          <option value="0">Sun</option>
+                          <option value="1">Mon</option>
+                          <option value="2">Tue</option>
+                          <option value="3">Wed</option>
+                          <option value="4">Thu</option>
+                          <option value="5">Fri</option>
+                          <option value="6">Sat</option>
+                        </select>
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>disabledBefore</th>
+                      <td><input class="form-control" type="date" name="disabledBefore" v-model="disabledBefore"></td>
+                    </tr>
+                    <tr>
+                      <th>disabledAfter</th>
+                      <td><input class="form-control" type="date" name="disabledAfter" v-model="disabledAfter"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <script type="text/javascript">
+                var dtPreview;
+                $('#bs-daterange-preview').on('ready.bs.daterange', function(ev, daterange) {
+                  if(!dtPreview)
+                    dtPreview = daterange;
+                  // var dtPreview = new Vue({
+                  //   el: '#bs-daterange-preview',
+                  //   data: daterange._options,
+                  // });
+                  var dtOptions = new Vue({
+                    el: '#bs-daterange-options',
+                    data: daterange._options,
+                  });
+                  $('#bs-daterange-options').find(':input').change(function(ev) {
+                    console.log(arguments);
+                    dtPreview._drawControls();
+                  });
+                });
+              </script>
+            </div>
+          </div>
+        </div>
+        <div class="card tab-pane" role="tabpanel" id="reference">
+          <div class="card-body">
+            <h5 class="card-title">Reference</h5>
+            <div class="card-text">
+              <h3>Options</h3>
+              <div class="alert alert-info" style="white-space: pre-line">Each options are assigned from 1) direct option input, 2) data-attribute.
+                i.e. `dateFrom` can be retrieved as &lt;div class="daterange" data-date-from="[date-from-value]"&gt; &lt;/div&gt;
+              </div>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>name</th>
+                    <th>type</th>
+                    <th>desc</th>
+                    <th>default</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>calendar</th>
+                    <td>string</td>
+                    <td>Year-Month (string) calendar which shows now</td>
+                    <td>moment().format('YYYY-MM-DD')</td>
+                  </tr>
+                  <tr>
+                    <th>dateFrom</th>
+                    <td>string</td>
+                    <td>Range selected starts from the date</td>
+                    <td><text-muted>undefined</text-muted></td>
+                  </tr>
+                  <tr>
+                    <th>dateTill</th>
+                    <td>string</td>
+                    <td>Range selected ends till the date</td>
+                    <td><text-muted>undefined</text-muted></td>
+                  </tr>
+                  <tr>
+                    <th>disabledBefore</th>
+                    <td>string</td>
+                    <td>The dates before it will be disabled to select</td>
+                    <td><text-muted>undefined</text-muted></td>
+                  </tr>
+                  <tr>
+                    <th>disabledAfter</th>
+                    <td>string</td>
+                    <td>The dates after it will be disabled to select</td>
+                    <td><text-muted>undefined</text-muted></td>
+                  </tr>
+                  <tr>
+                    <th>onSelected</th>
+                    <td>string/function</td>
+                    <td>
+                      on select handler <br />
+                      <p style="white-space: pre-line">function(period, daterange) {
+                        /* period (object): period indicator object
+                            - from (string): 'YYYY-MM-DD' formatted date that period starts,
+                            - till (string): 'YYYY-MM-DD' formatted date that period ends,
+                           daterange (jQuery object): daterange instance
+                        */
+                      }</p>
+                    </td>
+                    <td><p>(p,dr)=>{ 
+                      window.alert(p.from,p.till); 
+                      console.log(dr);
+                    }</p></td>
+                  </tr>
+                  <tr>
+                    <th>moveMonth</th>
+                    <td>boolean</td>
+                    <td>Show Month move control</td>
+                    <td>true</td>
+                  </tr>
+                  <tr>
+                    <th>moveYear</th>
+                    <td>boolean</td>
+                    <td>Show Year move control</td>
+                    <td>true</td>
+                  </tr>
+                  <tr>
+                    <th>titleFormat</th>
+                    <td>string</td>
+                    <td>moment format to show calendar title</td>
+                    <td>'MMM.YYYY'</td>
+                  </tr>
+                  <tr>
+                    <th>weekStart</th>
+                    <td>int</td>
+                    <td>calendar starting weekday</td>
+                    <td>0 (Sunday)</td>
+                  </tr>
+                  <tr>
+                    <th>presets</th>
+                    <td>array</td>
+                    <td>preset selector. 
+                      <p>i.e. <br />
+                        [<ul>
+                          <li>{ title: '이번달', desc: '월초 ~ 현재', range: (till)=>moment(till).date(1).format(DATE_FORMAT) }</li>
+                          <li>{ title: '일 개월', desc: '30일', range: (till)=>moment(till).add(-30, 'day').format(DATE_FORMAT) }</li>
+                          <li>{ title: '분기', desc: '3개월 (1/4년)', range: (till)=>moment(till).add(-3, 'month').format(DATE_FORMAT) }</li>
+                          <li>{ title: '올해', desc: '연초 ~ 현재', range: (till)=>moment(till).dayOfYear(1).format(DATE_FORMAT) }</li>
+                        </ul>];
+                      </p>
+                    </td>
+                    <td>[]</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
+
   <div class="row">
     <div class="col-12">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">DateRange Picker range</h5>
-          <div class="card-text">
-            <!-- range default -->
-            <button class="btn btn-lg dropdown-toggle" data-toggle="dropdown">dropdown</button>
-            <div class="dropdown-menu daterange">
-            </div>
-          </div>
-        </div>
-      </div>
+      
     </div>
   </div>
 </main><!-- /.container -->

@@ -19,18 +19,26 @@ $.fn.daterange = (function(options) {
 	const _TODAY = moment().format(DATE_FORMAT);
 
 	const EVENTS = {
-		ON_REDRAW: 'bs.daterange.redraw.on',
-		ON_SELECT: 'bs.daterange.selected.on',
-	}
+		ON_READY: 'ready.bs.daterange',
+		ON_REDRAW: 'redraw.bs.daterange',
+		ON_SELECT: 'selected.bs.daterange',
+	};
+
+	const onSelectDefault = function(range, ctrl) {
+		// console.log(arguments);
+		window.alert(`${range.from} - ${range.till}`);
+		console.log(ctrl);
+	};
 
 	const DEFAULT_OPTIONS = {
-		calendar: '2019-02',
-		ranged: {
-			from: null,
-			till: _TODAY,
-		},
+		calendar: moment().format(MONTH_FORMAT),
+		dateFrom: null,
+		dateTill: _TODAY,
+		disabledBefore: null,
+		disabledAfter: null,
+		focused: null,
 		selected: _TODAY,
-		focused: 'from',
+		onSelected: onSelectDefault.bind(this),
 		moveMonth: true,
 		moveYear: true,
 		titleFormat: TITLE_FORMAT,
@@ -40,12 +48,13 @@ $.fn.daterange = (function(options) {
 				- title: label name,
 				- desc: short description,
 				- range: function(till :string) => return from :string
-			}*/
+			}
 			{ title: '이번달', desc: '월초 ~ 현재', range: PRESET_RANGES['this_month'] },
 			{ title: '일 개월', desc: '30일', range: PRESET_RANGES['30_days'] },
 			{ title: '분기', desc: '3개월 (1/4년)', range: PRESET_RANGES['3_months'] },
 			{ title: '올해', desc: '연초 ~ 현재', range: PRESET_RANGES['this_year'] },
 			{ title: '일 년', desc: '1년', range: PRESET_RANGES['a_year'] },
+			*/
 		],
 	}; 
 	
@@ -64,18 +73,21 @@ $.fn.daterange = (function(options) {
 		}},
 		{cls: 'bs-daterange-cellbody', fn: function(ctrl) {
 			if(this._options.focused) {
-    			this._options.ranged[this._options.focused] = ctrl.dataset.date;
-    			this._options.focused = null;
+				let optKey = Object.assign(this._options.focused, {});
+    			this._options[`date${optKey.charAt(0).toUpperCase()+optKey.slice(1)}`] = ctrl.dataset.date;
+    			// this._options.focused = null;
     		}
     		this._options.selected = ctrl.dataset.date;
 		}},
-		{cls: 'bs-daterange-period', skipRedraw: true, fn: function(ctrl) {
+		{cls: 'bs-daterange-period', fn: function(ctrl) {
+			// console.log(ctrl, ctrl.name, ctrl.value);
 			this._options.selected = null;
-    		this._options.focused = ctrl.name;
-    		if(ctrl.value) {
+    		if(this._options.focused!=ctrl.name && ctrl.value) {
     			this._options.calendar = moment(ctrl.value).format(MONTH_FORMAT);
     			this._drawControls();
     		}
+    		// if(this._options.focused===ctrl.name)
+    		this._options.focused = this._options.focused === ctrl.name ? null : ctrl.name;
 		}},
 		{attr: 'preset-idx', fn: function(ctrl) {
 			if(!this._options.ranged.till)
@@ -99,21 +111,39 @@ $.fn.daterange = (function(options) {
 			this.data(period);
 			this.attr(period);
 
-			if(this.hasClass('dropdown-menu') && this.hasClass('show')) {
-				this.removeClass('show');
-			}
+			// dispose dropdown
+			let hasDropdown = null;
+			if(this.hasClass('.dropdown-menu'))
+
+			$(this).nearest('.dropdown-menu').siblings('.dropdown-toggle');
+
+			if(hasDropdown) {
+				hasDropdown.dropdown('hide');
+			} 
 
 			if(this._options.onSelected) {
-				this._options.onSelected(this);
+				if(typeof this._options.onSelected === 'function')
+					this._options.onSelected(period, this);
+				else if(typeof this._options.onSelected === 'string') {
+					let theCode = eval(this._options.onSelected);
+					theCode.bind(this)();
+				}
 			}
+
 			this.trigger(EVENTS.ON_SELECT, [period, this]);
 		}}
 	];
 	
+	this._onClickControls = function(ev) {
+		// prevent default propagation
+    	ev.preventDefault();
+    	ev.stopPropagation();
 
-	let _onClickControl = function(ev) {
 		let ctrl = ev.target.tagName != 'I' ? ev.target : ev.target.parentElement;
 		let doRedraw = false;
+		if(ctrl.hasAttribute('disabled'))
+			return;
+
 		// on click title control
 		this._onClickControlHandlers.forEach((function(handle) {
 			if((handle.cls && ctrl.classList.contains(handle.cls))
@@ -127,8 +157,19 @@ $.fn.daterange = (function(options) {
     	
     	if(doRedraw)
     		this._drawControls();
-    	ev.preventDefault();
-    	ev.stopPropagation();
+	}
+
+	this._dateRanged = function(group, name) {
+		if(group && group[name]) {
+			let v = group[name].toString();
+			let m = moment(v);
+			m.hour(0); 
+			m.minute(0); 
+			m.second(0); 
+			m.millisecond(0);
+			return m;
+		}
+		return null;
 	}
 
 	this._drawControlsCalendar = function() {
@@ -146,6 +187,11 @@ $.fn.daterange = (function(options) {
 		</div>
 		<table class="bs-daterange-calendar-table"></table>`);
 
+		if(!this._options.moveMonth)
+			this._calendar.find('.bs-daterange-month').hide();
+		if(!this._options.moveYear)
+			this._calendar.find('.bs-daterange-year').hide();
+
 		let tbl = $(this._calendar).find('table.bs-daterange-calendar-table');
 		tbl.append(`<thead><tr></tr></thead><tbody></tbody>`);
 		let thead = tbl.find('thead>tr');
@@ -156,19 +202,19 @@ $.fn.daterange = (function(options) {
 		}).bind(this));
 		let tblBody = $(tbl).find('tbody');
 		let _dbase = moment(this._options.calendar);
-	    let dcursor = Object.assign(_dbase, {});
-	    dcursor.date(1);
-	    dcursor.add('day', this._options.weekStart-dcursor.weekday());
-	    dcursor.hour(0);dcursor.minute(0);dcursor.second(0);dcursor.millisecond(2);
+	    let dcursor = moment(this._options.calendar);
 		let the_month = dcursor.format(MONTH_FORMAT);
 
-		let range_from = this._options.ranged && this._options.ranged.from ? moment(this._options.ranged.from) : null;
-		let range_till = this._options.ranged && this._options.ranged.till ? moment(this._options.ranged.till) : null;
+		// move to calendar date
+		_dbase.date(1);
+	    dcursor.date(1);
+	    dcursor.add('day', this._options.weekStart-dcursor.weekday());
+
+		let range_from = this._dateRanged(this._options, 'dateFrom');
+		let range_till = this._dateRanged(this._options, 'dateTill');
+		let disabled_before = this._dateRanged(this._options, 'disabledBefore');
+	    let disabled_after = this._dateRanged(this._options, 'disabledAfter');
 		let inRange = null;
-		if(range_from && range_till) {
-			range_from.hour(0);range_from.minute(0);range_from.second(0);range_from.millisecond(0);
-			range_till.hour(23);range_till.minute(59);range_till.second(59);range_till.millisecond(999);
-		}
 
 	    do {
 	    	let row = tblBody.append('<tr></tr>');
@@ -177,22 +223,28 @@ $.fn.daterange = (function(options) {
 				wd = wdays[wi];
 
 				// month class
-				let wc = 'bs-daterange-the-month';
+				let wc = `bs-daterange-cellbody weekday-${wd} bs-daterange-the-month`;
 				the_month = dcursor.format(MONTH_FORMAT);
 				let the_day = dcursor.format(DATE_FORMAT);
 				if(the_month!=this._options.calendar) {
-					wc = dcursor.isBefore(_dbase) ? 'bs-daterange-prev-month' : 'bs-daterange-next-month';
+					wc += dcursor.isBefore(_dbase) ? 'bs-daterange-prev-month' : 'bs-daterange-next-month';
 				}
-				// selected class
-				if(this._options.selected == the_day)
+				// date selected
+				if(this._options.selected == the_day) 
 					wc += ' selected';
-				// focused class
-				if(this._options.focused == the_day) 
-					wc += ' focused';
-				if(range_from && range_from.isBefore(dcursor) && range_till.isAfter(dcursor))
+				if(range_from && dcursor.isBetween(range_from, range_till))
 					wc += ' in-range';
+
+				// disabled
+				let dlb = '';
+				if((disabled_before && disabled_before.isSameOrAfter(dcursor))
+				|| (disabled_after && disabled_after.isSameOrBefore(dcursor))) {
+					wc += ' disabled';
+					dlb = 'disabled';
+				}
+
 				
-				row.append(`<td class="bs-daterange-cellbody weekday-${wd} ${wc}" data-date="${dcursor.format(DATE_FORMAT)}">
+				row.append(`<td class="${wc}" data-date="${dcursor.format(DATE_FORMAT)}" ${dlb}>
 					${dcursor.date()}
 				</td>`);
 	    		dcursor.add('day', 1);
@@ -201,11 +253,12 @@ $.fn.daterange = (function(options) {
 
 	    // setup ranged from/till
 	    if(range_from && range_till) {
-		    this.find(`td[data-date="${range_from.format(DATE_FORMAT)}"]`).addClass('period-from');
+		    this._calendar.find(`td[data-date="${range_from.format(DATE_FORMAT)}"]`).addClass('period-from');
 		    	// .html(`<span class="period-from">${range_from.date()}</span>`);
-		    this.find(`td[data-date="${range_till.format(DATE_FORMAT)}"]`).addClass('period-till');
+		    this._calendar.find(`td[data-date="${range_till.format(DATE_FORMAT)}"]`).addClass('period-till');
 		    	// .html(`<span class="period-till">${range_till.date()}</span>`);
 	    }
+
 
 	    this.trigger(EVENTS.ON_REDRAW, [this]);
 	}
@@ -217,9 +270,9 @@ $.fn.daterange = (function(options) {
 			<div class="input-group-prepend">
 				<span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
 			</div>
-			<input class="form-control bs-daterange-period bs-daterange-from" placeholder="${DATE_FORMAT}" name="from" value="${this._options.ranged.from || ''}" readonly>
+			<input class="form-control bs-daterange-period bs-daterange-from" placeholder="${DATE_FORMAT}" name="from" value="${this._options.dateFrom || ''}" readonly>
 			<span class="input-group-text">-</span>
-	    	<input class="form-control bs-daterange-period bs-daterange-till" placeholder="${DATE_FORMAT}" name="till" value="${this._options.ranged.till || ''}" readonly>
+	    	<input class="form-control bs-daterange-period bs-daterange-till" placeholder="${DATE_FORMAT}" name="till" value="${this._options.dateTill || ''}" readonly>
 	    	<div class="input-group-append">
 	    		<button class="btn btn-primary bs-daterange-selector-submit"><i class="fas fa-check"></i></button>
 	    	</div>
@@ -250,12 +303,13 @@ $.fn.daterange = (function(options) {
 		this._drawControlsSelector();
 
 		if(initializing) {
-		    this.click(_onClickControl.bind(this));    	
+		    this.click(this._onClickControls.bind(this));
 	    }
 	}
 
 	this._drawControls(true);
-	// (_drawControls.bind(this))();
+
+	this.trigger(EVENTS.ON_READY, [this]);
 });
 
 $('.daterange').ready(function(){
