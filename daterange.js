@@ -68,24 +68,31 @@ $.fn.daterange = (function(options) {
     		let direction = ctrl.classList.contains('bs-daterange-prev') ? -1 : 1;
 
     		this._options.calendar = moment(this._options.calendar)
-    			.add(unit, direction)
+    			.add(direction, unit)
     			.format(MONTH_FORMAT);
 		}},
 		{cls: 'bs-daterange-cellbody', fn: function(ctrl) {
 			if(this._options.focused) {
 				let optKey = Object.assign(this._options.focused, {});
-    			this._options[`date${optKey.charAt(0).toUpperCase()+optKey.slice(1)}`] = ctrl.dataset.date;
+				optKey = optKey.charAt(0).toUpperCase()+optKey.slice(1);
+    			this._options[`date${optKey}`] = ctrl.dataset.date;
     			// this._options.focused = null;
     		}
     		this._options.selected = ctrl.dataset.date;
 		}},
 		{cls: 'bs-daterange-period', fn: function(ctrl) {
-			// console.log(ctrl, ctrl.name, ctrl.value);
-			this._options.selected = null;
-    		if(this._options.focused!=ctrl.name && ctrl.value) {
-    			this._options.calendar = moment(ctrl.value).format(MONTH_FORMAT);
-    			this._drawControls();
-    		}
+			if(!this._options.selected) {
+				// this._options.selected = null;
+	    		if(this._options.focused!=ctrl.name && ctrl.value) {
+	    			this._options.calendar = moment(ctrl.value).format(MONTH_FORMAT);
+	    			this._drawControls();
+	    		}
+			} else if(!this._options.focused) {
+				let optKey = Object.assign(ctrl.name, {});
+				optKey = optKey.charAt(0).toUpperCase()+optKey.slice(1);
+				this._options.calendar = moment(this._options.selected).format(MONTH_FORMAT);
+				this._options[`date${optKey}`] = this._options.selected;
+			}
     		// if(this._options.focused===ctrl.name)
     		this._options.focused = this._options.focused === ctrl.name ? null : ctrl.name;
 		}},
@@ -115,8 +122,6 @@ $.fn.daterange = (function(options) {
 			let hasDropdown = null;
 			if(this.hasClass('.dropdown-menu'))
 				hasDropDown = this;
-			else if(this.nearest('.dropdown-menu'))
-				hasDropdown = this.nearest('.dropdown-menu');
 
 			if(hasDropdown) {
 				hasDropdown.dropdown('hide');
@@ -209,7 +214,7 @@ $.fn.daterange = (function(options) {
 		// move to calendar date
 		_dbase.date(1);
 	    dcursor.date(1);
-	    dcursor.add('day', this._options.weekStart-dcursor.weekday());
+	    dcursor.add(this._options.weekStart-dcursor.weekday(), 'day');
 
 		let range_from = this._dateRanged(this._options, 'dateFrom');
 		let range_till = this._dateRanged(this._options, 'dateTill');
@@ -248,7 +253,7 @@ $.fn.daterange = (function(options) {
 				row.append(`<td class="${wc}" data-date="${dcursor.format(DATE_FORMAT)}" ${dlb}>
 					${dcursor.date()}
 				</td>`);
-	    		dcursor.add('day', 1);
+	    		dcursor.add(1, 'day');
 	    	}).bind(this));
 	    } while(the_month==this._options.calendar);
 
