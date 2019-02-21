@@ -21,6 +21,7 @@ $.fn.daterange = (function(options) {
 	const EVENTS = {
 		ON_READY: 'ready.bs.daterange',
 		ON_REDRAW: 'redraw.bs.daterange',
+		ON_CHANGE: 'changed.bs.daterange',
 		ON_SELECT: 'selected.bs.daterange',
 	};
 
@@ -62,6 +63,10 @@ $.fn.daterange = (function(options) {
 
 	this._options = Object.assign(DEFAULT_OPTIONS, this[0].dataset, options);
 
+	this._onUpdatePeriodValue = function() {
+		this.trigger(EVENTS.ON_CHANGE, [this._options.dateFrom, this._options.dateTill]);
+	}
+
 	this._onClickControlHandlers = [
 		{cls: 'bs-daterange-control', fn: function(ctrl) {
 			let unit = ctrl.classList.contains('bs-daterange-year') ? 'year' : 'month';
@@ -77,6 +82,7 @@ $.fn.daterange = (function(options) {
 				optKey = optKey.charAt(0).toUpperCase()+optKey.slice(1);
     			this._options[`date${optKey}`] = ctrl.dataset.date;
     			// this._options.focused = null;
+    			this._onUpdatePeriodValue();
     		}
     		this._options.selected = ctrl.dataset.date;
 		}},
@@ -92,6 +98,7 @@ $.fn.daterange = (function(options) {
 				optKey = optKey.charAt(0).toUpperCase()+optKey.slice(1);
 				this._options.calendar = moment(this._options.selected).format(MONTH_FORMAT);
 				this._options[`date${optKey}`] = this._options.selected;
+				this._onUpdatePeriodValue();
 			}
     		// if(this._options.focused===ctrl.name)
     		this._options.focused = this._options.focused === ctrl.name ? null : ctrl.name;
@@ -104,6 +111,8 @@ $.fn.daterange = (function(options) {
     		this._options.selected = this._options.ranged.from;
     		this._options.focused = null;
     		this._options.presets[pidx].selected = true;
+
+    		this._onUpdatePeriodValue();
 		}},
 		{cls: 'dropdown-toggle', skipRedraw: true, fn: function(ctrl) {
 			let menu = $(ctrl.parentElement).find('.dropdown-menu').toggleClass('show');
