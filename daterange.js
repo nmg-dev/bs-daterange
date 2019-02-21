@@ -114,12 +114,13 @@ $.fn.daterange = (function(options) {
 			// dispose dropdown
 			let hasDropdown = null;
 			if(this.hasClass('.dropdown-menu'))
-
-			$(this).nearest('.dropdown-menu').siblings('.dropdown-toggle');
+				hasDropDown = this;
+			else if(this.nearest('.dropdown-menu'))
+				hasDropdown = this.nearest('.dropdown-menu');
 
 			if(hasDropdown) {
 				hasDropdown.dropdown('hide');
-			} 
+			}
 
 			if(this._options.onSelected) {
 				if(typeof this._options.onSelected === 'function')
