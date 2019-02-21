@@ -252,12 +252,10 @@ $.fn.daterange = (function(options) {
 	    } while(the_month==this._options.calendar);
 
 	    // setup ranged from/till
-	    if(range_from && range_till) {
+	    if(range_from)
 		    this._calendar.find(`td[data-date="${range_from.format(DATE_FORMAT)}"]`).addClass('period-from');
-		    	// .html(`<span class="period-from">${range_from.date()}</span>`);
+		if(range_till)
 		    this._calendar.find(`td[data-date="${range_till.format(DATE_FORMAT)}"]`).addClass('period-till');
-		    	// .html(`<span class="period-till">${range_till.date()}</span>`);
-	    }
 
 
 	    this.trigger(EVENTS.ON_REDRAW, [this]);
