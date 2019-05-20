@@ -325,6 +325,8 @@ $.fn.daterange = (function(options) {
 	this.trigger(EVENTS.ON_READY, [this]);
 });
 
+/*
 $('.daterange').ready(function(){
 	$('.daterange').each(function(idx, el) { $(el).daterange(); });
 });
+*/

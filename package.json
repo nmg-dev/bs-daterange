@@ -1,0 +1,13 @@
+{
+	"name": "bs-daterange",
+	"version": "1.0.0.20190520",
+	"description": "daterange component to be used with/in bootstrap",
+	"keyword": ["bootstrap", "daterange", "period"],
+	"homepage": "https://nmg-dev.github.io/bs-daterange/",
+	"license": "BSD-3-Clause",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/nmg-dev/bs-daterange.git"
+	},
+	"main": "daterange.js",
+}

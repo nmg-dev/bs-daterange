@@ -161,6 +161,9 @@
                 </table>
               </div>
               <script type="text/javascript">
+                // initialize
+                $('#bs-daterange-preview').daterange({});
+
                 var dtPreview;
                 $('#bs-daterange-preview').on('ready.bs.daterange', function(ev, daterange) {
                   if(!dtPreview)
